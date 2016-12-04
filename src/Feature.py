@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[108]:
+# In[1]:
 
 class Feature(object):
     def __init__(self, path="~/mimic3/mimic3/demo/"):
@@ -109,15 +109,15 @@ class Feature(object):
     def get_features(self):
         """TODO: convert list of list of list to numpy 3d matrix as admit*time*featurevec"""
         import numpy as np
+        import math
          
         admission_df = self.get_admission()    
         chartevents_df = self.get_chartevents()
-#         admission_df = admission_df[admission_df['HADM_ID'] == 142345]
-#         chartevents_df = chartevents_df[chartevents_df['HADM_ID'] == 142345]
         
         features = np.zeros(shape=(admission_df.shape[0], 
                                   self.get_max_time(chartevents_df, admission_df),
                                   len(self.get_items())*2))
+        z = np.zeros(shape=(admission_df.shape[0]))
         
         cnt2 = 0
         for idx, admission in admission_df.iterrows():
@@ -128,6 +128,8 @@ class Feature(object):
             (chartevents_perAdm_df, max_time) = self.get_relative_time_per_admid(
                     chartevents_df[chartevents_df['HADM_ID'] == admission['HADM_ID']],
                     admission['ADMITTIME'])# max_time is in seconds
+            
+            z[cnt2] = math.ceil(max_time/(60*10))
             feature_patient = np.zeros(shape=(features.shape[1], features.shape[2]))
             prev_val = {}
             
@@ -140,19 +142,19 @@ class Feature(object):
                                             items[item_name], it, it+(60*10), 
                                                        prev_val[item_name][0] if item_name in prev_val else 0)
                     feature_patient_time.extend(prev_val[item_name])
-#                 print(admission['HADM_ID'])
-#                 print(admission['ADMITTIME'])
-#                 print(it)
-#                 print(np.array(feature_patient_time))
-#                 print(feature_patient.shape)
                 feature_patient[cnt,:] = np.array(feature_patient_time)
                 cnt+=1
-#                 feature_patient.append(feature_patient_time)
-#             features.append(feature_patient)
             features[cnt2,:] = feature_patient
             cnt2+=1
             
-        return features
+        return features, z
+    
+    
+
+
+# In[ ]:
+
+# feature = Feature()
 
 
 # In[109]:
@@ -192,12 +194,9 @@ class Feature(object):
 # In[111]:
 
 feature = Feature()
-a = feature.get_features()
+x, z = feature.get_features()
 import numpy as np
-np.save('feature', a)
-
-
-# In[ ]:
-
-
+np.save('x', x)
+np.save('z', z)
+print("done")
 
