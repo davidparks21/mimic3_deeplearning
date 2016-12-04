@@ -92,8 +92,9 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--checkpoint_file', default="../models/localize_model", required=False, help='Name of the checkpoint file to save (without file extension)')
-    parser.add_argument('-x', '--datafile_features', default="../data/features.npy", required=False, help='Path and file name of numpy data file of features')
-    parser.add_argument('-y', '--datafile_labels', default="../data/labels.npy", required=False, help='Path and file name of numpy data file of labels')
+    parser.add_argument('-x', '--datafile_features', default="../data/features.npy", required=False, help='Path and file name of numpy data file of features, default [../data/features.npy]')
+    parser.add_argument('-y', '--datafile_labels', default="../data/labels.npy", required=False, help='Path and file name of numpy data file of labels, default [../data/features.npy]')
+    parser.add_argument('-z', '--datafile_sequence_lengths', default="../data/sequence_lengths.npy", required=False, help='Path and file name of numpy sequence lengths, default [, default [../data/features.npy]')
     parser.add_argument('-l', '--loadmodel', default=None, required=False, help='Specify a model name to load')
     parser.add_argument('-i', '--iterations', default=DEFAULT_TRAINING_ITERS, required=False, help='Number of training iterations')
     args = vars(parser.parse_args())
@@ -109,11 +110,13 @@ if __name__ == '__main__':
     test_max_length = 10
     test_n_features = 5
 
-    X = np.random.randn(2, 10, 8)   # Batch=2, max_sequence_length=9 (first entry saved for sequence length), num_features=8
-    X[1,6:] = 0                     # set 2nd sample to be length 5 with 0 padding after that
-    tmp_lengths = np.array([10,6])
-    tmp_labels = np.array([[0,1,1],[0,1,1]])
+    # X = np.random.randn(2, 10, 8)   # Batch=2, max_sequence_length=9 (first entry saved for sequence length), num_features=8
+    # X[1,6:] = 0                     # set 2nd sample to be length 5 with 0 padding after that
+    # tmp_lengths = np.array([10,6])
+    # tmp_labels = np.array([[0,1,1],[0,1,1]])
 
-    # train_ann(hyperparameters, DataSet(args['datafile_features'], args['datafile_labels']))
-    dataset = Dataset(sample_sequence_features=X, sequence_lengths=tmp_lengths, labels=tmp_labels)
+    X = np.load(args['datafile_features'])
+    y = np.load(args['datafile_labels'])
+    z = np.load(args['datafile_sequence_lengths'])
+    dataset = Dataset(sample_sequence_features=X, sequence_lengths=y, labels=z)
     train_ann(hyperparameters, dataset)
